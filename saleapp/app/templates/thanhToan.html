@@ -5,18 +5,20 @@
 <body>
     <div class="container">
         <h1 class="text-center">Trang Thanh Toán</h1>
-        <form>
+        <form action="/QL/thanhToan/{{medicine_bill.id}}" method="post">
             <div class="mb-3">
                 <label class="form-label">Họ tên</label>
-                <label class="form-label">{{patient.name}}</label>
+                <input type="text" name ="name" value="{{patient.name}}" readonly>
+<!--                <label class="form-label">{{patient.name}}</label>-->
             </div>
             <div class="mb-3">
                 <label  class="form-label">Ngày khám</label>
-                <label class="form-label">{{medicine_bill.examinationDate}}</label>
+                <input name ="date" type="text" value="{{medicine_bill.examinationDate}}" readonly>
+<!--                <label class="form-label">{{medicine_bill.examinationDate}}</label>-->
             </div>
             <div class="mb-3">
                 <label for="medicalFee" class="form-label">Tiền khám</label>
-                <input type="text" class="form-control" id="medicalFee" placeholder="Nhập tiền khám" oninput="formatCurrency(this)">
+                <input name = "serviceFee" type="text" class="form-control" id="medicalFee" placeholder="Nhập tiền khám" >
             </div>
             <div class="mb-3">
                 <label  class="form-label">Tiền thuốc</label>
@@ -35,7 +37,7 @@
                                     <td>{{medicine[0]}}</td>
                                     <td>{{medicine[1]}}</td>
                                     <td>{{medicine[2]}}</td>
-                                    <td>{{medicine[3]}}</td>
+                                    <td id="{{medicine[0]}}">{{ "{:,.0f}".format(medicine[3]) }} VND</td>
                                 </tr>
                             {%endfor%}
                             </tbody>
@@ -43,8 +45,10 @@
             </div>
             <div class="mb-3">
                 <label for="totalFee" class="form-label">Tổng tiền</label>
-                <input type="text" class="form-control" id="totalFee" readonly>
+                <input name = "totalFeeB" type="text" class="form-control" id="totalFeeB" value="" style="display: none">
+                <div id="totalFee"></div>
             </div>
+
             <button type="submit" class="btn btn-primary">Thanh toán</button>
         </form>
     </div>
@@ -71,6 +75,62 @@
         }
     </style>
     <script>
+
+        var medicalFee = document.getElementById('medicalFee')
+        if(medicalFee){
+            medicalFee.addEventListener('blur', (e)=>{
+
+                let totalDiv = document.getElementById('totalFee')
+                console.log(totalDiv.textContent)
+                 console.log(medicalFee.value)
+                let str = totalDiv.textContent
+                let cleanedStr = str.replace(/[^\d.-]/g, '');
+                let number = parseFloat(cleanedStr.replace('.', '').replace(',', ''));
+                // console.log(result)
+                let newTotal = parseInt(number) + parseInt(medicalFee.value)
+                let formattedCurrency = newTotal.toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                });
+                if(totalDiv){
+                    totalDiv.innerText = formattedCurrency
+                    let tinhTien = document.getElementById("totalFeeB")
+                    tinhTien.value = newTotal
+                }
+            })
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            let medicines = document.querySelectorAll('td[id]')
+            if(medicines){
+                console.log(medicines)
+                var total = 0
+                medicines.forEach(medicine =>{
+                    console.log('thuoc')
+                    console.log(medicine)
+                    let str = medicine.textContent
+                    console.log(str)
+                    let result = str.replace(/,/g, '').replace(' VND', '');
+                    total += parseInt(result)
+                    }
+
+                )
+
+                }
+                console.log(total)
+                let totalDiv = document.getElementById('totalFee')
+                let formattedCurrency = total.toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                });
+                if(totalDiv){
+                    totalDiv.innerText = formattedCurrency
+                    let tinhTien = document.getElementById("totalFeeB")
+                    tinhTien.value = total
+                }
+        })
+
+
         function formatCurrency(input) {
             var value = input.value.replace(/,/g, '');
             if (!isNaN(value) && value !== '') {

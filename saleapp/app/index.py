@@ -8,10 +8,26 @@ import dao
 import locale
 locale.setlocale(locale.LC_ALL, 'vi_VN.UTF-8')
 from app import app, login,db
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime
 import pandas as pd
 from io import BytesIO
+
+@app.route('/comments', methods=['post'])
+@login_required
+def addcomment():
+
+    content = request.json.get('content')
+    c = dao.add_comment(content=content)
+    user = dao.get_info_user3(c.user_id)
+    return jsonify({
+        "content": c.content,
+        "created_date": c.created_date,
+            # "avatar": user.avatar,https://res.cloudinary.com/dxxwcby8l/image/upload/v1646729533/zuur9gzztcekmyfenkfr.jpg
+        "avatar": user.avatar,
+        "username": user.name
+
+    })
 @app.route("/", methods=['get', 'post'])
 def index():
 
@@ -43,7 +59,11 @@ def index():
         return redirect(request.referrer or '/')
     else:
         time_frames = dao.get_list_time_frame()
-        return render_template('index.html',time_frames=time_frames)
+        comments = dao.load_comments()
+        for comment in comments:
+            user_info = dao.get_info_user3(comment.user_id)
+            comment.avatar = user_info.avatar
+        return render_template('index.html',time_frames=time_frames, comments=comments)
 
    # return render_template('index.html', categories = cates, products = prods, page = math.ceil(total/page_size))
 
@@ -177,6 +197,7 @@ def timeframe_procee():
 
 @app.route("/export_excel")
 def export_excel_procee():
+
     # [(2, 'aa', 'nam', datetime.datetime(2000, 2, 2, 0, 0), 'HCM'),
     #  (3, 'aa', 'nam', datetime.datetime(2000, 2, 2, 0, 0), 'HCM'),
     #  (4, 'aa', 'nam', datetime.datetime(2000, 2, 2, 0, 0), 'HCM'), (7, 'Nguyen Le Ngoc Anh', '0798536554', None, None)]
@@ -297,29 +318,44 @@ from collections import OrderedDict
 from decimal import Decimal
 @app.route("/QL/thanhToan/<medicine_bill_id>", methods=['GET', 'POST'])
 def get_thanh_toan_detail(medicine_bill_id):
-    medicine_bill = dao.get_medicine_bill_by_id(medicine_bill_id)
-    patient = dao.get_patient_name_by_id(medicine_bill.patient_id)
-    medicines = dao.get_precription_by_medicine_bill_id(medicine_bill_id)
-    result_tuple = ()
-    for medicine in medicines:
-        unit = dao.get_unit_by_id(medicine.unit_id)
-        print(medicine)
+    if request.method.__eq__('POST'):
+        total = request.form.get('totalFeeB')
+        serviceFee = request.form.get('serviceFee')
+        medicineFee = int(total) - int(serviceFee)
+        medicine_bill_id = medicine_bill_id
+        cashier = dao.get_info_user_by_account_id(current_user.id)
+        cashier_id = cashier.id
+        medicineBill = dao.get_medicine_bill_by_id(medicine_bill_id)
+        patient_id = medicineBill.patient_id
+        bill = dao.create_bill(medicineMoney=medicineFee, serviceFee=serviceFee,totalFee= total,  cashier_id = cashier_id, patient_id = patient_id)
+        updateBill = dao.update_medicine_bill(medicine_bill_id = medicine_bill_id, bill_id = bill.id)
+        print(total)
 
-        medicine = tuple(medicine)
-        medicine = medicine + (unit.unit,)
+        return redirect(request.referrer or '/')
+    else:
+        medicine_bill = dao.get_medicine_bill_by_id(medicine_bill_id)
+        patient = dao.get_patient_name_by_id(medicine_bill.patient_id)
+        medicines = dao.get_precription_by_medicine_bill_id(medicine_bill_id)
+        result_tuple = ()
+        for medicine in medicines:
+            unit = dao.get_unit_by_id(medicine.unit_id)
+            print(medicine)
 
-        # Lấy các phần tử trong tuple
-        name = medicine[0]
-        amount = medicine[2]
-        price = medicine[3]
-        unit = medicine[4]
-        # Chia số tiền (price) cho 1000 và làm tròn về 3 chữ số thập phân
-        formatted_price = locale.currency(price, grouping=True)
+            medicine = tuple(medicine)
+            medicine = medicine + (unit.unit,)
 
-        # Tạo lại tuple với giá trị đã thay đổi
-        new_tuple = (name, unit, amount, formatted_price)
-        result_tuple = result_tuple + (new_tuple,)
-    return render_template('thanhToan.html',patient=patient,medicine_bill=medicine_bill,medicines=result_tuple)
+            # Lấy các phần tử trong tuple
+            name = medicine[0]
+            amount = medicine[2]
+            price = medicine[3]
+            unit = medicine[4]
+            # Chia số tiền (price) cho 1000 và làm tròn về 3 chữ số thập phân
+            # formatted_price = locale.currency(price, grouping=True)
+
+            # Tạo lại tuple với giá trị đã thay đổi
+            new_tuple = (name, unit, amount, price)
+            result_tuple = result_tuple + (new_tuple,)
+        return render_template('thanhToan.html',patient=patient,medicine_bill=medicine_bill,medicines=result_tuple)
 
 
 if __name__ == '__main__':

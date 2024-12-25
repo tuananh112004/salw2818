@@ -1,12 +1,12 @@
 from itertools import count
-
+import cloudinary.uploader
 from sqlalchemy import text, func
 from app.models import Patient, User, TimeFrame, ExaminationList, TimeFrame, ExaminationSchedule, Account, Nurse, \
-    MedicineUnit, Medicine, Precription, MedicineBill, Doctor
+    MedicineUnit, Medicine, Precription, MedicineBill, Doctor, Bill, Comment
 import hashlib
 from flask import Flask, g, render_template, session
 from app import app,db
-from datetime import datetime
+from datetime import datetime, date
 from flask_login  import logout_user,current_user
 
 from flask import render_template, request, redirect
@@ -35,6 +35,68 @@ from flask import render_template, request, redirect
 #                 .group_by(Patient.id) \
 #                 .filter(func.date(ExaminationSchedule.date_examination).__eq__(appointment_date)).all()
 
+
+
+# def revenue_stats_by_products():
+#     return db.session.query(Product.id, Product.name, func.sum(ReceiptDetails.quantity * ReceiptDetails.unit_price))\
+#              .join(ReceiptDetails, ReceiptDetails.product_id.__eq__(Product.id)).group_by(Product.id).all()
+#
+#
+# select  b.examinationDate, count(distinct(b.patient_id)), sum(totalFee)
+# from medicine_bill mb, bill b
+# where mb.bill_id = b.id
+# group by b.examinationDate
+def revenue_stats_by_time(time='month', year=datetime.now().year):
+
+    # return  db.session.query(func.date(Bill.examinationDate)), func.count(func.distinct(Bill.patient_id)), func.sum(Bill.totalFee)\
+    #     .join(MedicineBill, MedicineBill.bill_id == Bill.id )\
+    #     .filter(func.extract('month', Bill.examinationDate).__eq__(time))\
+    #     .group_by( func.date( Bill.examinationDate) ).all()
+    return db.session.query(
+    func.date(Bill.examinationDate).label('date'),  # Lấy ngày (YYYY-MM-DD)
+    func.count(func.distinct(Bill.patient_id)).label('patient_count'),  # Đếm số lượng bệnh nhân
+    func.sum(Bill.totalFee).label('total_fee')  # Tính tổng phí
+).join(
+    MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
+).filter(
+    func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
+).group_by(
+    func.date(Bill.examinationDate)  # Nhóm theo ngày (YYYY-MM-DD)
+).all()
+def create_list_patient_export():
+    nurse = get_info_user_by_account_id(current_user.id)
+    newList = ExaminationList(examinationDate = datetime.now(), nurse_id = nurse.id)
+    db.session.add(newList)
+    lichKham = db.session.query(ExaminationSchedule).filter(ExaminationSchedule.exami==nurse.id).all()
+    db.session.commit()
+    return newList
+
+def load_comments():
+    return Comment.query.order_by(-Comment.id).all()
+
+
+def add_comment(content):
+    user = get_info_user_by_account_id(current_user.id)
+    c = Comment(content=content,  user_id=user.id)
+    db.session.add(c)
+    db.session.commit()
+
+    return c
+
+def create_bill(medicineMoney,serviceFee, totalFee, cashier_id, patient_id):
+    a = Bill(medicineMoney = medicineMoney, serviceFee = serviceFee, totalFee = totalFee, cashier_id = cashier_id, patient_id = patient_id, examinationDate = datetime.now())
+
+
+    db.session.add(a)
+    db.session.commit()
+    return a
+
+def update_medicine_bill(bill_id,medicine_bill_id):
+    medicine_bill = db.session.query(MedicineBill).filter(MedicineBill.id==medicine_bill_id).first()
+    print(medicine_bill)
+    medicine_bill.bill_id = bill_id
+    db.session.commit()
+    return medicine_bill
 
 def get_unit_by_id(id):
     return MedicineUnit.query.get(id)
@@ -209,11 +271,14 @@ def create_account(username,password):
     db.session.commit()
     return account
 def create_patient(name,avatar,account_id):
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        avatar = res.get('secure_url')
     patient = User(name=name,avatar=avatar, account_id=account_id)
     db.session.add(patient)
     db.session.commit()
     return patient
 if __name__ == '__main__':
     with app.app_context():
-        print(get_precription_by_medicine_bill_id(1))
+        print(revenue_stats_by_time(time='12'))
 

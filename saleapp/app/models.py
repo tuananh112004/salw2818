@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from enum import Enum as RoleEnum
 from app import app, db
 from flask_login  import UserMixin
+from datetime import datetime
 
 # class Category(db.Model):
 #     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -209,6 +210,11 @@ class ExaminationSchedule(db.Model):
         self.time_frame_id = time_frame_id
         self.patient_id = patient_id
 
+class Comment(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    content = Column(String(255), nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    created_date = Column(DATETIME, default=datetime.now())
 
 if __name__ == '__main__':
     with app.app_context():
@@ -222,12 +228,12 @@ if __name__ == '__main__':
         # a = Administrator(name='A', sex="female", birthday="2000-01-02", address="ABC", account_id= 3,
         #              avatar="123", inauguration="2000-01-01",salary='Aks')
         # db.session.add(a)
-        # d = Nurse(name='Doc', sex="female", birthday="2000-01-02", address="ABC", avatar="123",degree="CNTT" , salary='aksj',account_id=4)
+        # d = Cashier(name='Cashier2', sex="female", birthday="2000-01-02", address="ABC", avatar="123",skill="CNTT" , salary='aksj',account_id=12)
         # db.session.add(d)
         # e = ExaminationList(examinationDate = '2024-12-19',nurse_id = 3)
         # db.session.add(e)
-        k = ExaminationSchedule(date_examination='2024-12-19',patient_id = 4, examination_list_id = 1, time_frame_id = 1,note="aaa")
-        db.session.add(k)
+        # k = ExaminationSchedule(date_examination='2024-12-19',patient_id = 4, examination_list_id = 1, time_frame_id = 1,note="aaa")
+        # db.session.add(k)
         # aa = Account(username="admin", password="123",account_role=UserRole.Admin)
         # db.session.add(aa)
         # aa = Account(username="patient1", password="123", account_role=UserRole.Nurse)

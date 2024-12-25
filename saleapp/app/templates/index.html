@@ -65,6 +65,85 @@
     </div>
 
 </section><!-- /Appointment Section -->
+{% if current_user.is_authenticated %}
+<div class="mt-2">
+    <textarea class="form-control" rows="5" id="comment" placeholder="Nhập nội dung bình luận..."></textarea>
+    <button class="btn btn-success mt-2" onclick="addComment()">Bình luận</button>
+    <div id="loading-spinner" class="mt-2 d-none">
+        <div class="spinner-border text-success" role="status">
+            <span class="sr-only">Đang gửi...</span>
+        </div>
+    </div>
+</div>
+{% else %}
+<p>Vui lòng <a href="">đăng nhập</a> để bình luận!</p>
+{% endif %}
 
+<ul class="list-group mt-2" id="comments">
+   {% for c in comments %}
+    <li class="list-group-item">
+        <div class="row">
+            <div class="col-md-1 col-4">
+                <img src="{{ c.avatar }}" class="img-fluid rounded-circle" style="width: 50px; height: 50px;" alt="Khong co"/>
+            </div>
+            <div class="col-md-11 col-8">
+                <strong>{{ c.username }}</strong>
+                <p class="mb-1">{{ c.content }}</p>
+                <small class="text-muted">{{ c.created_date }}</small>
+            </div>
+        </div>
+    </li>
+   {% endfor %}
+</ul>
+
+<script>
+    function addComment() {
+        const commentInput = document.getElementById("comment");
+        const commentText = commentInput.value.trim();
+
+        if (!commentText) {
+            alert("Vui lòng nhập nội dung bình luận!");
+            return;
+        }
+
+        const spinner = document.getElementById("loading-spinner");
+        spinner.classList.remove("d-none");
+
+        fetch(`/comments`, {
+            method: "POST",
+            body: JSON.stringify({ "content": commentText }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(c => {
+            let html = `
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-1 col-4">
+                            <img src="${c.avatar}" class="img-fluid rounded-circle" style="width: 50px; height: 50px;" />
+                        </div>
+                        <div class="col-md-11 col-8">
+                            <strong>${c.username}</strong>
+                            <p class="mb-1">${c.content}</p>
+                            <small class="text-muted">${c.created_date}</small>
+                        </div>
+                    </div>
+                </li>
+            `;
+
+            let comments = document.getElementById("comments");
+            comments.innerHTML = html + comments.innerHTML;
+
+            commentInput.value = ""; // Xóa nội dung ô nhập
+        })
+        .catch(err => {
+            alert("Đã xảy ra lỗi. Vui lòng thử lại!");
+            console.error(err);
+        })
+        .finally(() => {
+            spinner.classList.add("d-none");
+        });
+    }
+</script>
 
 {%endblock%}

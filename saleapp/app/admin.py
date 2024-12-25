@@ -4,7 +4,7 @@ from app import app, db
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user, logout_user
 from flask import redirect
-
+import dao
 
 
 class AdminView(ModelView):
@@ -28,25 +28,29 @@ class MedicineView(AdminView):
     column_list = ['name','description']
 class MedicineUnitView(AdminView):
     column_list = ['id','unit','medicines']
-class LogoutView(BaseView):
+
+
+
+class AuthenticatedView(BaseView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+class LogoutView(AuthenticatedView):
     @expose('/')
     def index(self):
         logout_user()
         return redirect('/admin')
 
-    def is_accessible(self):
-        return current_user.is_authenticated
-
 class TimeFrameView(AdminView):
     column_list = ['id','time']
 
-# class Statsview(BaseView):
-#     @expose('/')
-#     def index(self):
-#
-#         return self.render('admin/stats.html')
-#     def is_accessible(self):
-#         return current_user.is_authenticated
+class StatsView(AuthenticatedView):
+    @expose('/')
+    def index(self):
+
+        return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=12))
+
 
 admin = Admin(app=app, name='eCommerce Admin', template_mode='bootstrap4')
 admin.add_view(MedicineUnitView(MedicineUnit,db.session))
@@ -55,5 +59,5 @@ admin.add_view(DoctorView(Doctor,db.session))
 
 
 admin.add_view(TimeFrameView(TimeFrame,db.session))
-# admin.add_view(Statsview(name="Thong ke"))
+admin.add_view(StatsView(name="Thong ke"))
 admin.add_view(LogoutView(name="Logout"))
