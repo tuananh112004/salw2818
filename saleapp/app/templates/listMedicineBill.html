@@ -1,0 +1,58 @@
+
+{% extends 'layout/QL.html'%}
+
+
+{% block content%}
+
+
+<body>
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">Danh Sách Phiếu Khám Bệnh</h2>
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên Bệnh Nhân</th>
+          <th>Ngày Khám</th>
+          <th>Thanh Toán</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for record in medicine_bills%}
+          <tr>
+              <td>{{record.id}}</td>
+              <td>{{record.patient_name}}</td>
+              <td>{{record.examinationDate.strftime('%d-%m-%Y')}}</td>
+              <td>
+                  <a href="/QL/thanhToan/{{record.id}}"> <button class="btn btn-pay">Thanh Toán</button></a>
+
+              </td>
+          </tr>
+      {%endfor%}
+
+
+      </tbody>
+    </table>
+  </div>
+  <style>
+    .table th,
+    .table td {
+      vertical-align: middle;
+    }
+    .btn-pay {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+    .btn-pay:hover {
+      background-color: #218838;
+    }
+  </style>
+
+  <!-- Bootstrap JS, Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+
+{%endblock%}

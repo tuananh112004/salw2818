@@ -85,7 +85,7 @@
     <div class="link-container"><a href="#">Quản lý người dùng</a></div>
     <div class="link-container"><a href="#">Quản lý sản phẩm</a></div>
     <div class="link-container"><a href="#">Quản lý đơn hàng</a></div>
-    <div class="link-container"><a href="#">Báo cáo</a></div>
+    <div class="link-container"><a href="/QL/thanhToan">Thanh toan</a></div>
     <div class="link-container"><a href="#">Cài đặt</a></div>
   </div>
 
@@ -96,13 +96,12 @@
 
     <!-- Example card -->
     <div class="card">
-      <div class="card-header">
-        Thông báo
-      </div>
-      <div class="card-body">
-        <h5 class="card-title">Tiêu đề thông báo</h5>
-        <p class="card-text">Đây là nội dung thông báo. Bạn có thể thêm nội dung khác tại đây.</p>
-        <a href="#" class="btn btn-primary">Đọc thêm</a>
-      </div>
+      <main class="container">
+          {% block content required%}
+          {% endblock%}
+
+      </main>
+
+          <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     </div>
   </div>

@@ -1,11 +1,12 @@
 import math
-from sqlalchemy import text, func
+from sqlalchemy import text, func, result_tuple
 from flask import render_template, request, redirect, jsonify, send_file, g, session
 from pyexpat.errors import messages
 from app.models import Patient, User, TimeFrame, ExaminationList, TimeFrame, ExaminationSchedule, Account,MedicineBill, Medicine
 import json
 import dao
-
+import locale
+locale.setlocale(locale.LC_ALL, 'vi_VN.UTF-8')
 from app import app, login,db
 from flask_login import login_user, logout_user, current_user
 from datetime import datetime
@@ -272,6 +273,55 @@ def get_list_patient_procees():
         return render_template('patientList.html', records = record,date=formatted_date)
 
     return render_template('patientList.html',date=formatted_date)
+
+
+@app.route("/QL",methods=['GET','POST'])
+def get_QL():
+
+
+    return render_template('quanLyIndex.html')
+
+
+@app.route("/QL/thanhToan", methods=['GET', 'POST'])
+def get_thanh_toan():
+
+    medicine_bills = dao.get_medicine_bill()
+    for medicine in medicine_bills:
+        patient = dao.get_patient_name_by_id(medicine.patient_id)
+        print(medicine)
+        medicine.patient_name = patient.name
+    return render_template('listMedicineBill.html',medicine_bills=medicine_bills)
+
+
+from collections import OrderedDict
+from decimal import Decimal
+@app.route("/QL/thanhToan/<medicine_bill_id>", methods=['GET', 'POST'])
+def get_thanh_toan_detail(medicine_bill_id):
+    medicine_bill = dao.get_medicine_bill_by_id(medicine_bill_id)
+    patient = dao.get_patient_name_by_id(medicine_bill.patient_id)
+    medicines = dao.get_precription_by_medicine_bill_id(medicine_bill_id)
+    result_tuple = ()
+    for medicine in medicines:
+        unit = dao.get_unit_by_id(medicine.unit_id)
+        print(medicine)
+
+        medicine = tuple(medicine)
+        medicine = medicine + (unit.unit,)
+
+        # Lấy các phần tử trong tuple
+        name = medicine[0]
+        amount = medicine[2]
+        price = medicine[3]
+        unit = medicine[4]
+        # Chia số tiền (price) cho 1000 và làm tròn về 3 chữ số thập phân
+        formatted_price = locale.currency(price, grouping=True)
+
+        # Tạo lại tuple với giá trị đã thay đổi
+        new_tuple = (name, unit, amount, formatted_price)
+        result_tuple = result_tuple + (new_tuple,)
+    return render_template('thanhToan.html',patient=patient,medicine_bill=medicine_bill,medicines=result_tuple)
+
+
 if __name__ == '__main__':
     from app import admin
     app.run(debug=True)

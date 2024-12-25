@@ -30,6 +30,29 @@ from flask import render_template, request, redirect
 #     return query.all()
 # def count_products():
 #     return Product.query.count()
+# db.session.query(Patient.id,Patient.name, Patient.sex, Patient.birthday, Patient.address)\
+#                 .join(ExaminationSchedule, ExaminationSchedule.patient_id==User.id) \
+#                 .group_by(Patient.id) \
+#                 .filter(func.date(ExaminationSchedule.date_examination).__eq__(appointment_date)).all()
+
+
+def get_unit_by_id(id):
+    return MedicineUnit.query.get(id)
+
+def get_precription_by_medicine_bill_id(id):
+    return db.session.query(Medicine.name ,Medicine.unit_id,func.sum(Precription.amount), func.sum(Medicine.price))\
+            .join(Medicine,Medicine.id == Precription.medicine_id)\
+            .group_by(Medicine.name,Medicine.unit_id).all()
+
+
+def get_medicine_bill_by_id(id):
+    return MedicineBill.query.filter_by(id=id).first()
+
+def get_medicine_bill():
+    return db.session.query(MedicineBill).all()
+
+def get_medcine_bill_by_patient_id(patient_id):
+    return db.session.query(MedicineBill).filter(MedicineBill.patient_id == patient_id).all()
 
 
 def auth_user(username, password):
@@ -192,5 +215,5 @@ def create_patient(name,avatar,account_id):
     return patient
 if __name__ == '__main__':
     with app.app_context():
-        print(get_history_patient(5))
+        print(get_precription_by_medicine_bill_id(1))
 
