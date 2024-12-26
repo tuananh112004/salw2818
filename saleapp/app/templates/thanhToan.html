@@ -100,6 +100,11 @@
             })
         }
 
+         window.addEventListener('DOMContentLoaded', function() {
+            let select = document.getElementById('payyy')
+             console.log(select)
+             select.classList.add('active');
+        })
         window.addEventListener('DOMContentLoaded', function() {
             let medicines = document.querySelectorAll('td[id]')
             if(medicines){

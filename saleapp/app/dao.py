@@ -45,7 +45,30 @@ from flask import render_template, request, redirect
 # select  b.examinationDate, count(distinct(b.patient_id)), sum(totalFee)
 # from medicine_bill mb, bill b
 # where mb.bill_id = b.id
-# group by b.examinationDate
+# group by b.examinationDate\
+
+
+# select m.id ,m.name, mu.unit, sum(p.amount) as "SO lan dung", m.amount as "So thuoc"
+# from medicine m, precription p, medicine_unit mu
+# where m.id = p.medicine_id and p.unit_id = mu.id
+# group by m.id, m.name, mu.unit, m.amount
+
+def amount_medicine_stats_by_time(time='month'):
+    return db.session.query(
+        Medicine.name, MedicineUnit.unit, func.sum(Precription.amount), Medicine.amount
+    ).join(
+        Precription, Precription.medicine_id == Medicine.id  # Liên kết bảng MedicineBill với Bill
+    ).join(
+        MedicineUnit, Precription.unit_id == MedicineUnit.id
+    ).join(
+        MedicineBill, Precription.medicineBill_id == MedicineBill.id
+    ).filter(
+        func.extract('month', MedicineBill.examinationDate) == time  # Lọc theo tháng
+    ).group_by(
+        Medicine.name, MedicineUnit.unit, Medicine.amount
+    ).all()
+
+
 def revenue_stats_by_time(time='month', year=datetime.now().year):
 
     # return  db.session.query(func.date(Bill.examinationDate)), func.count(func.distinct(Bill.patient_id)), func.sum(Bill.totalFee)\
@@ -291,5 +314,5 @@ def create_patient(name,avatar,account_id):
     return patient
 if __name__ == '__main__':
     with app.app_context():
-        print(revenue_stats_by_time(time='12'))
+        print(amount_medicine_stats_by_time(time='12'))
 

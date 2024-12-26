@@ -6,10 +6,11 @@
 <div class="row">
     <div class="col-md-7 col-12">
         <div class="form-container">
-        <h2>Chọn Tháng</h2>
+        <h2>Chọn Tháng {{month}}</h2>
         <form action="/admin/statsview/" method="GET">
-            <label for="month">Chọn tháng:</label>
+            <label for="month">Chọn tháng: </label>
             <select name="month" id="month">
+
                 <option value="1">Tháng 1</option>
                 <option value="2">Tháng 2</option>
                 <option value="3">Tháng 3</option>
@@ -36,14 +37,14 @@
                 <th>Doanh thu</th>
                 <th>Ty le</th>
             </tr>
-            {% for record in records %}
+
             <tr>
-                <td>{{ record[0].strftime('%d-%m-%Y') }}</td>
-                <td>{{ record[1] }}</td>
-                <td>{{ "{:,.0f}".format(record[2]) }} VND</td>
+                <td></td>
+                <td></td>
+                <td></td>
                 <td name="tyLe"></td>
             </tr>
-            {% endfor %}
+
         </table>
     </div>
     <div class="col-md-5 col-12">
@@ -60,14 +61,14 @@
                 <th>So luong</th>
                 <th>So lan dung</th>
             </tr>
-            {% for record in records2 %}
+
             <tr>
-                <td>{{ record[0] }}</td>
-                <td>{{ record[1] }} </td>
-                <td>{{ record[3] }} </td>
-                <td>{{ record[2] }} </td>
+                <td></td>
+                <td> </td>
+                <td></td>
+                <td> </td>
             </tr>
-            {% endfor %}
+
         </table>
     </div>
     <div class="col-md-5 col-12">
@@ -77,57 +78,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    var tmp = []
-    {% for t in tyle %}
-    tmp.push({{ t }})
-    {% endfor %}
-    console.log(tmp)
+
+
+var tmp = []
+
     lable = []
-    console.log(JSON.stringify({{ngay[0]}}))
-    {% for day in ngay %}
-    lable.push({{ day }})
-    {% endfor %}
 
         medicineName= []
         medicineAmount = []
         medicineUsage =[]
-    {% for record in records2 %}
-
-        medicineName.push("{{record[0]}}")
-        medicineAmount.push("{{record[3]}}")
-        medicineUsage.push("{{record[2]}}")
-    {% endfor %}
-    console.log(medicineName)
-    console.log(medicineUsage)
-    console.log(medicineAmount)
-
-    tmomonnthh = {{month}}
-
-    window.onload = function() {
-
-        let optionValue1 = document.querySelector(`option[value="${tmomonnthh}"]`);
-            optionValue1.selected = true;
-        const ctx = document.getElementById('myChart');
-        draw(ctx, tmp, lable);
-
-          const ctx2 = document.getElementById('myChart2');
-        draw2(ctx2, medicineName, medicineAmount, medicineUsage);
-    }
-
-    window.addEventListener('DOMContentLoaded', (e)=>{
-        let rows = document.querySelectorAll('td[name]')
-        console.log(rows)
-        for (let i = 0; i < rows.length; i++){
-            if(tmp){
-                console.log(i)
-                console.log(tmp[i])
-                rows[i].textContent = (tmp[i].toFixed(2)) + '%'
-            }
-
-        }
-    })
-
-
 
 
     function draw2(ctx, medicineName, medicineAmount, medicineUsage) {
@@ -188,22 +147,17 @@
             }
           });
     }
+    tmomonnthh = {{month}}
+    console.log(tmomonnthh)
+     window.onload = function() {
+         let optionValue1 = document.querySelector(`option[value="${tmomonnthh}"]`);
+            optionValue1.selected = true;
+        const ctx = document.getElementById('myChart');
+        draw(ctx, tmp, lable);
 
-    let data = [];
-    let labels = [];
-
-    let data2 = [];
-    let labels2 = [];
-
-    {% for s in stats %}
-    data.push({{ s[2] }})
-    labels.push('{{ s[1] }}')
-    {% endfor %}
-
-    {% for s in stats2 %}
-    data2.push({{ s[1] }})
-    labels2.push({{ s[0] }})
-    {% endfor %}
+          const ctx2 = document.getElementById('myChart2');
+        draw2(ctx2, medicineName, medicineAmount, medicineUsage);
+    }
 
 
 </script>

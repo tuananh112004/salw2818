@@ -2,7 +2,7 @@ import math
 from sqlalchemy import text, func, result_tuple
 from flask import render_template, request, redirect, jsonify, send_file, g, session
 from pyexpat.errors import messages
-from app.models import Patient, User, TimeFrame, ExaminationList, TimeFrame, ExaminationSchedule, Account,MedicineBill, Medicine
+from app.models import Patient, User, TimeFrame, ExaminationList, TimeFrame, ExaminationSchedule, Account,MedicineBill, Medicine, UserRole
 import json
 import dao
 import locale
@@ -117,7 +117,17 @@ def logout_procees():
 
 
 @app.route("/createList", methods =['get','post'])
+@login_required
 def create_list_procee():
+    user = dao.get_user_by_id(current_user.id)
+    print(user.account_role)
+    print(UserRole.Nurse)
+    print(current_user.account_role==(UserRole.Cashier))
+    if(current_user.account_role==(UserRole.Nurse)):
+        pass
+    else:
+        print("nnn")
+        return redirect('/login')
     appointment_date = request.form.get('appointment_date')
 
     if(appointment_date):
@@ -133,9 +143,12 @@ def create_list_procee():
         print(record)
         return render_template('list.html', records = record,date=formatted_date)
 
+
+
     return render_template('list.html',date=formatted_date)
 
 @app.route("/info/<user_id>", methods=['get', 'post'])
+@login_required
 def info_process(user_id):
     if request.method.__eq__('POST'):
         name = request.form.get('name')
@@ -160,6 +173,7 @@ def info_process(user_id):
 
 
 @app.route('/api/patient/<patient_id>', methods=['DELETE'])
+@login_required
 def delete_patient(patient_id):
     if patient_id:
         print(patient_id)
@@ -224,7 +238,13 @@ def export_excel_procee():
 
 
 @app.route("/taoDon/<patient_id>/<date>", methods=['GET','POST'])
+@login_required
 def taoDon(patient_id,date):
+    user = dao.get_user_by_id(current_user.id)
+    if (current_user.account_role==(UserRole.Doctor)):
+        pass
+    else:
+        return redirect('/login')
     name = dao.get_patient_name_by_id(patient_id)
     # formatted_date = datetime.strptime(date, '%Y-%m-%d')
     if request.method.__eq__('POST'):
@@ -277,7 +297,13 @@ def search_drugs():
 
 
 @app.route("/listPatient",methods=['GET','POST'])
+@login_required
 def get_list_patient_procees():
+    user = dao.get_user_by_id(current_user.id)
+    if (current_user.account_role==(UserRole.Doctor)):
+        pass
+    else:
+        return redirect('/login')
     appointment_date = request.form.get('appointment_date')
     # appointment_date = datetime.today().strftime('%Y-%m-%d')
     if(appointment_date):
@@ -304,8 +330,13 @@ def get_QL():
 
 
 @app.route("/QL/thanhToan", methods=['GET', 'POST'])
+@login_required
 def get_thanh_toan():
-
+    user = dao.get_user_by_id(current_user.id)
+    if (current_user.account_role==(UserRole.Cashier)):
+        pass
+    else:
+        return redirect('/login')
     medicine_bills = dao.get_medicine_bill()
     for medicine in medicine_bills:
         patient = dao.get_patient_name_by_id(medicine.patient_id)
@@ -317,7 +348,13 @@ def get_thanh_toan():
 from collections import OrderedDict
 from decimal import Decimal
 @app.route("/QL/thanhToan/<medicine_bill_id>", methods=['GET', 'POST'])
+@login_required
 def get_thanh_toan_detail(medicine_bill_id):
+    user = dao.get_user_by_id(current_user.id)
+    if (current_user.account_role==(UserRole.Cashier)):
+        pass
+    else:
+        return redirect('/login')
     if request.method.__eq__('POST'):
         total = request.form.get('totalFeeB')
         serviceFee = request.form.get('serviceFee')

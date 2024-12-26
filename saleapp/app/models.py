@@ -35,6 +35,11 @@ class Account(db.Model,UserMixin):
     password = Column(String(100), nullable=False)
     account_role = Column(Enum(UserRole), default=UserRole.Patient)
 
+    def __eq__(self, other):
+        if isinstance(other, User):
+            return self.account_role == other.account_role
+        return None
+
 class User(db.Model):
     __tablename__ = "user"  # Bảng chung của lớp cha
     id = Column(Integer, primary_key = True, autoincrement = True)

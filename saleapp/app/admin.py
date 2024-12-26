@@ -3,7 +3,7 @@ from flask_admin import Admin, BaseView, expose
 from app import app, db
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user, logout_user
-from flask import redirect, session
+from flask import redirect, session, request
 import dao
 
 
@@ -48,22 +48,38 @@ class TimeFrameView(AdminView):
 class StatsView(AuthenticatedView):
     @expose('/')
     def index(self):
-        total_fee_in_month = dao.revenue_stats_by_time2(time=12)
-        records = dao.revenue_stats_by_time(time=12)
+
+        print(request.args.get('month'))
+        month=request.args.get('month')
+        if(month):
+            pass
+        else:
+            month=12
+        print(month)
+        total_fee_in_month = dao.revenue_stats_by_time2(time=month)
+
+        records = dao.revenue_stats_by_time(time=month)
         print(records)
         tyle = []
         ngay = []
-        for record in records:
-            percentage = (float(record[2])/float(total_fee_in_month[0][1]))*100
-            tyle.append(percentage)
-            tmp = (record[0].strftime("%Y-%m-%d"))
-            a = tmp.split('-')
-            ngay.append(a[2])
-        print(tyle)
-        print(ngay)
-        session['dem'] = 0
-        return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=12), total = total_fee_in_month[0][1],tyle = tyle,ngay = ngay)
+        if(records):
+            for record in records:
+                percentage = (float(record[2])/float(total_fee_in_month[0][1]))*100
+                tyle.append(percentage)
+                tmp = (record[0].strftime("%Y-%m-%d"))
+                a = tmp.split('-')
+                ngay.append(a[2])
 
+
+       # Stats2
+        records2 = dao.amount_medicine_stats_by_time(time=12)
+        print("122")
+        print(total_fee_in_month)
+        if(dao.revenue_stats_by_time(time=month) is not None and total_fee_in_month):
+            print("133")
+            return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=month), total = total_fee_in_month[0][1],tyle = tyle,ngay = ngay, records2 = records2,month=month)
+        else:
+            return self.render('admin/stats2.html', month=month)
 
 admin = Admin(app=app, name='eCommerce Admin', template_mode='bootstrap4')
 admin.add_view(MedicineUnitView(MedicineUnit,db.session))
