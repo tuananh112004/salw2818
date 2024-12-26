@@ -56,13 +56,24 @@ def revenue_stats_by_time(time='month', year=datetime.now().year):
     func.date(Bill.examinationDate).label('date'),  # Lấy ngày (YYYY-MM-DD)
     func.count(func.distinct(Bill.patient_id)).label('patient_count'),  # Đếm số lượng bệnh nhân
     func.sum(Bill.totalFee).label('total_fee')  # Tính tổng phí
-).join(
-    MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
-).filter(
-    func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
-).group_by(
-    func.date(Bill.examinationDate)  # Nhóm theo ngày (YYYY-MM-DD)
-).all()
+    ).join(
+        MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
+    ).filter(
+        func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
+    ).group_by(
+        func.date(Bill.examinationDate)  # Nhóm theo ngày (YYYY-MM-DD)
+    ).all()
+
+def revenue_stats_by_time2(time='month', year=datetime.now().year):
+    return db.session.query(func.extract('month', Bill.examinationDate),\
+    func.sum(Bill.totalFee).label('total_fee')  # Tính tổng phí
+    ).join(
+        MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
+    ).filter(
+        func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
+    ).group_by(
+        func.extract('month', Bill.examinationDate) # Nhóm theo ngày (YYYY-MM-DD)
+    ).all()
 def create_list_patient_export():
     nurse = get_info_user_by_account_id(current_user.id)
     newList = ExaminationList(examinationDate = datetime.now(), nurse_id = nurse.id)
@@ -111,7 +122,7 @@ def get_medicine_bill_by_id(id):
     return MedicineBill.query.filter_by(id=id).first()
 
 def get_medicine_bill():
-    return db.session.query(MedicineBill).all()
+    return db.session.query(MedicineBill).filter(MedicineBill.bill_id == None).all()
 
 def get_medcine_bill_by_patient_id(patient_id):
     return db.session.query(MedicineBill).filter(MedicineBill.patient_id == patient_id).all()

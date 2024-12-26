@@ -20,6 +20,7 @@
                 <td>{{ record[0].strftime('%d-%m-%Y') }}</td>
                 <td>{{ record[1] }}</td>
                 <td>{{ "{:,.0f}".format(record[2]) }} VND</td>
+                <td name="tyLe"></td>
             </tr>
             {% endfor %}
         </table>
@@ -51,6 +52,38 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    var tmp = []
+    {% for t in tyle %}
+    tmp.push({{ t }})
+    {% endfor %}
+    console.log(tmp)
+    lable = []
+    console.log(JSON.stringify({{ngay[0]}}))
+    {% for day in ngay %}
+    lable.push({{ day }})
+    {% endfor %}
+
+    window.onload = function() {
+        const ctx = document.getElementById('myChart');
+        draw(ctx, tmp, lable);
+
+        const ctx2 = document.getElementById('myChart2');
+        draw(ctx2, data2, labels2);
+    }
+
+    window.addEventListener('DOMContentLoaded', (e)=>{
+        let rows = document.querySelectorAll('td[name]')
+        console.log(rows)
+        for (let i = 0; i < rows.length; i++){
+            if(tmp){
+                console.log(i)
+                console.log(tmp[i])
+                rows[i].textContent = (tmp[i].toFixed(2)) + '%'
+            }
+
+        }
+    })
+
     function draw(ctx, data, labels) {
         new Chart(ctx, {
             type: 'bar',
@@ -89,12 +122,6 @@
     labels2.push({{ s[0] }})
     {% endfor %}
 
-    window.onload = function() {
-        const ctx = document.getElementById('myChart');
-        draw(ctx, data, labels);
 
-        const ctx2 = document.getElementById('myChart2');
-        draw(ctx2, data2, labels2);
-    }
 </script>
 {% endblock %}

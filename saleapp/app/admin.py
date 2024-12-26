@@ -3,7 +3,7 @@ from flask_admin import Admin, BaseView, expose
 from app import app, db
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user, logout_user
-from flask import redirect
+from flask import redirect, session
 import dao
 
 
@@ -48,8 +48,21 @@ class TimeFrameView(AdminView):
 class StatsView(AuthenticatedView):
     @expose('/')
     def index(self):
-
-        return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=12))
+        total_fee_in_month = dao.revenue_stats_by_time2(time=12)
+        records = dao.revenue_stats_by_time(time=12)
+        print(records)
+        tyle = []
+        ngay = []
+        for record in records:
+            percentage = (float(record[2])/float(total_fee_in_month[0][1]))*100
+            tyle.append(percentage)
+            tmp = (record[0].strftime("%Y-%m-%d"))
+            a = tmp.split('-')
+            ngay.append(a[2])
+        print(tyle)
+        print(ngay)
+        session['dem'] = 0
+        return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=12), total = total_fee_in_month[0][1],tyle = tyle,ngay = ngay)
 
 
 admin = Admin(app=app, name='eCommerce Admin', template_mode='bootstrap4')
