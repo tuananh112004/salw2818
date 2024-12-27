@@ -1,3 +1,5 @@
+from pandas.core.interchange.from_dataframe import primitive_column_to_ndarray
+
 from app.models import Doctor, Medicine, MedicineUnit, MedicineBill, Administrator, ExaminationSchedule, TimeFrame, UserRole
 from flask_admin import Admin, BaseView, expose
 from app import app, db
@@ -51,14 +53,19 @@ class StatsView(AuthenticatedView):
 
         print(request.args.get('month'))
         month=request.args.get('month')
+        year=request.args.get('year')
+        if (year):
+            pass
+        else:
+            year = 2024
         if(month):
             pass
         else:
             month=12
         print(month)
-        total_fee_in_month = dao.revenue_stats_by_time2(time=month)
+        total_fee_in_month = dao.revenue_stats_by_time2(time=month,year=year)
 
-        records = dao.revenue_stats_by_time(time=month)
+        records = dao.revenue_stats_by_time(time=month,year=year)
         print(records)
         tyle = []
         ngay = []
@@ -75,11 +82,11 @@ class StatsView(AuthenticatedView):
         records2 = dao.amount_medicine_stats_by_time(time=12)
         print("122")
         print(total_fee_in_month)
-        if(dao.revenue_stats_by_time(time=month) is not None and total_fee_in_month):
+        if(dao.revenue_stats_by_time(time=month,year=year) is not None and total_fee_in_month):
             print("133")
-            return self.render('admin/stats.html', records= dao.revenue_stats_by_time(time=month), total = total_fee_in_month[0][1],tyle = tyle,ngay = ngay, records2 = records2,month=month)
+            return self.render('admin/stats.html',year=year, records= dao.revenue_stats_by_time(time=month,year=year), total = total_fee_in_month[0][1],tyle = tyle,ngay = ngay, records2 = records2,month=month)
         else:
-            return self.render('admin/stats2.html', month=month)
+            return self.render('admin/stats2.html', month=month, year=year)
 
 admin = Admin(app=app, name='eCommerce Admin', template_mode='bootstrap4')
 admin.add_view(MedicineUnitView(MedicineUnit,db.session))

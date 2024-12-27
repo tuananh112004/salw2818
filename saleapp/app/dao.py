@@ -53,19 +53,60 @@ from flask import render_template, request, redirect
 # where m.id = p.medicine_id and p.unit_id = mu.id
 # group by m.id, m.name, mu.unit, m.amount
 
-def amount_medicine_stats_by_time(time='month'):
+
+
+# select m.id ,m.name, medicine_unit.unit, sum(precription.amount) as "SO lan dung", m.amount as "So thuoc"
+# from medicine m
+# left join precription on precription.medicine_id = m.id
+# join medicine_unit on medicine_unit.id = m.unit_id
+# group by m.id, m.name, medicine_unit.unit, m.amount
+#
+
+
+
+def amount_medicine_stats_by_timeewqeqe(time='month',year=datetime.now().year):
+    return db.session.query(
+        Medicine.id,  # ID thuốc
+        Medicine.name,  # Tên thuốc
+        MedicineUnit.unit,  # Đơn vị thuốc
+        func.coalesce(func.sum(Precription.amount), 0).label("SO lan dung"),
+        # Tổng số lượng thuốc (nếu không có đơn thuốc thì 0)
+        Medicine.amount.label("So thuoc")  # Số lượng thuốc còn lại
+    ).join(
+        MedicineUnit, Medicine.unit_id == MedicineUnit.id  # Kết nối với bảng đơn vị thuốc
+    ).outerjoin(
+        Precription, Precription.medicine_id == Medicine.id  # Kết nối trái (LEFT JOIN) với bảng Prescription
+    ).group_by(
+        Medicine.id, Medicine.name, MedicineUnit.unit, Medicine.amount
+        # Nhóm theo ID thuốc, tên thuốc, đơn vị và số lượng thuốc
+    ).all()
+
+
+def amount_medicine_stats_by_time(time='month',year=datetime.now().year):
+    # return db.session.query(
+    #     Medicine.name, MedicineUnit.unit, func.sum(Precription.amount), Medicine.amount
+    # ).join(
+    #     Medicine, Precription.medicine_id == Medicine.id, isouter=True  # Liên kết bảng MedicineBill với Bill
+    # ).join(
+    #     MedicineUnit, Precription.unit_id == MedicineUnit.id
+    # ).join(
+    #     MedicineBill, Precription.medicineBill_id == MedicineBill.id
+    # ).filter(
+    #     func.extract('month', MedicineBill.examinationDate) == time,  # Lọc theo tháng
+    #     func.extract('year', Bill.examinationDate) == year
+    # ).group_by(
+    #     Medicine.name, MedicineUnit.unit, Medicine.amount
+    # ).all()
+
     return db.session.query(
         Medicine.name, MedicineUnit.unit, func.sum(Precription.amount), Medicine.amount
     ).join(
-        Precription, Precription.medicine_id == Medicine.id  # Liên kết bảng MedicineBill với Bill
-    ).join(
-        MedicineUnit, Precription.unit_id == MedicineUnit.id
-    ).join(
-        MedicineBill, Precription.medicineBill_id == MedicineBill.id
-    ).filter(
-        func.extract('month', MedicineBill.examinationDate) == time  # Lọc theo tháng
+        MedicineUnit, Medicine.unit_id == MedicineUnit.id  # Kết nối với bảng đơn vị thuốc
+    ).outerjoin(
+        Precription, Precription.medicine_id == Medicine.id  # Kết nối trái (LEFT JOIN) với bảng Prescription
     ).group_by(
-        Medicine.name, MedicineUnit.unit, Medicine.amount
+        Medicine.id, Medicine.name, MedicineUnit.unit, Medicine.amount
+        # Nhóm theo ID thuốc, tên thuốc, đơn vị và số lượng thuốc
     ).all()
 
 
@@ -82,7 +123,8 @@ def revenue_stats_by_time(time='month', year=datetime.now().year):
     ).join(
         MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
     ).filter(
-        func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
+        func.extract('month', Bill.examinationDate) == time,  # Lọc theo tháng
+        func.extract('year', Bill.examinationDate) == year
     ).group_by(
         func.date(Bill.examinationDate)  # Nhóm theo ngày (YYYY-MM-DD)
     ).all()
@@ -93,7 +135,8 @@ def revenue_stats_by_time2(time='month', year=datetime.now().year):
     ).join(
         MedicineBill, MedicineBill.bill_id == Bill.id  # Liên kết bảng MedicineBill với Bill
     ).filter(
-        func.extract('month', Bill.examinationDate) == time  # Lọc theo tháng
+        func.extract('month', Bill.examinationDate) == time,  # Lọc theo tháng
+        func.extract('year', Bill.examinationDate) == year
     ).group_by(
         func.extract('month', Bill.examinationDate) # Nhóm theo ngày (YYYY-MM-DD)
     ).all()
@@ -314,5 +357,5 @@ def create_patient(name,avatar,account_id):
     return patient
 if __name__ == '__main__':
     with app.app_context():
-        print(amount_medicine_stats_by_time(time='12'))
+        print(amount_medicine_stats_by_timeewqeqe(time='12'))
 

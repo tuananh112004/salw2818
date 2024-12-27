@@ -23,11 +23,18 @@
                 <option value="11">Tháng 11</option>
                 <option value="12">Tháng 12</option>
             </select>
+
+                <label for="year" class="form-label">Chọn Năm</label>
+                <select name ="year" class="form-select" id="year" required>
+                  <option value="">Chọn năm</option>
+                  <!-- Các lựa chọn năm sẽ được tạo tự động bằng JavaScript -->
+                </select>
+
             <button class="btn btn-danger" type="submit">Lọc</button>
         </form>
     </div>
         {%if records%}
-        <h2>Doanh thu theo thang: 12</h2>
+        <h2>Doanh thu theo thang: {{month}}-{{year}}</h2>
         {%endif%}
         <table class="table">
             <tr>
@@ -77,6 +84,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+     const yearSelect = document.getElementById('year');
+    const currentYear = new Date().getFullYear();
+
+    // Tạo các năm từ năm hiện tại xuống năm 2000
+    for (let year = currentYear; year >= 2000; year--) {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    }
+
+
+
     var tmp = []
     {% for t in tyle %}
     tmp.push({{ t }})
@@ -102,11 +122,13 @@
     console.log(medicineAmount)
 
     tmomonnthh = {{month}}
-
+    yearrrr = {{year}}
     window.onload = function() {
 
         let optionValue1 = document.querySelector(`option[value="${tmomonnthh}"]`);
             optionValue1.selected = true;
+        let optionValueqq = document.querySelector(`option[value="${yearrrr}"]`);
+            optionValueqq.selected = true;
         const ctx = document.getElementById('myChart');
         draw(ctx, tmp, lable);
 

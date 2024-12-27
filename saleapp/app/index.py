@@ -30,7 +30,7 @@ def addcomment():
     })
 @app.route("/", methods=['get', 'post'])
 def index():
-
+    messages = ""
     if request.method.__eq__('POST'):
         appointment_date = request.form.get('appointment_date')
 
@@ -41,12 +41,10 @@ def index():
         date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
         formatted_date = date_obj.strftime('%d-%m-%Y')
         count_schedule = dao.get_list_patient2(appointment_date)
+        messages = jsonify({'status': 'error', 'message': 'There was an error processing your request.'})
         if(len(count_schedule) >=40):
             print(len(count_schedule))
-            return jsonify({
-                "status": 400,
-                "messages": "Ngày này đã kín lịch"
-                })
+            return render_template('index.html',messages=messages)
         print(len(count_schedule))
         name = request.form.get('name')
         sex = request.form.get('sex')
@@ -56,14 +54,18 @@ def index():
         note = request.form.get('note')
         date = request.form.get('date')
         a = dao.create_appointment(name = name, sex=sex, birth=birth, address=address, time = time, note = note,date_examination=date)
-        return redirect(request.referrer or '/')
+        messages = jsonify({'status': 'success', 'message': 'Thanh cong'})
+
+        # return render_template('index.html', messages=messages)
+        return  redirect(request.referrer or '/')
     else:
         time_frames = dao.get_list_time_frame()
         comments = dao.load_comments()
         for comment in comments:
             user_info = dao.get_info_user3(comment.user_id)
             comment.avatar = user_info.avatar
-        return render_template('index.html',time_frames=time_frames, comments=comments)
+        print(messages)
+        return render_template('index.html',time_frames=time_frames, comments=comments,messages=messages)
 
    # return render_template('index.html', categories = cates, products = prods, page = math.ceil(total/page_size))
 
