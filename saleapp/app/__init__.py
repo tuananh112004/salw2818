@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import cloudinary
 app = Flask(__name__)
 from flask_login import LoginManager
-app.config["SQLALCHEMY_DATABASE_URI"] ="mysql+pymysql://root:%s@localhost/hosp?charset=utf8mb4" % quote('cun112004')
+app.config["SQLALCHEMY_DATABASE_URI"] ="mysql+pymysql://root:%s@localhost/hosp?charset=utf8mb4" % quote('cunto2004')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config["PAGE_SIZE"] = 3
 app.secret_key='dkfd'

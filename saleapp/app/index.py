@@ -28,46 +28,94 @@ def addcomment():
         "username": user.name
 
     })
-@app.route("/", methods=['get', 'post'])
+# @app.route("/", methods=['get', 'post'])
+# def index():
+#     messages = ""
+#     if request.method.__eq__('POST'):
+#         appointment_date = request.form.get('appointment_date')
+#
+#         if (appointment_date):
+#             pass
+#         else:
+#             appointment_date = '2024-12-12'
+#         date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
+#         formatted_date = date_obj.strftime('%d-%m-%Y')
+#         count_schedule = dao.get_list_patient2(appointment_date)
+#         messages = jsonify({'status': 'error', 'message': 'There was an error processing your request.'})
+#         # if(len(count_schedule) >=40):
+#         #
+#         #     return render_template('index.html',messages=messages)
+#
+#         name = request.form.get('name')
+#         sex = request.form.get('sex')
+#         birth = request.form.get('birth')
+#         address = request.form.get('address')
+#         time = request.form.get('time')
+#         note = request.form.get('note')
+#         date = request.form.get('date')
+#         a = dao.create_appointment(name = name, sex=sex, birth=birth, address=address, time = time, note = note,date_examination=date)
+#
+#         return  redirect(request.referrer or '/')
+#     else:
+#         time_frames = dao.get_list_time_frame()
+#         comments = dao.load_comments()
+#         for comment in comments:
+#             user_info = dao.get_info_user3(comment.user_id)
+#             comment.avatar = user_info.avatar
+#
+#         return render_template('index.html',time_frames=time_frames, comments=comments,messages=messages)
+
+   # return render_template('index.html', categories = cates, products = prods, page = math.ceil(total/page_size))
+@app.route("/", methods=['GET', 'POST'])
 def index():
-    messages = ""
-    if request.method.__eq__('POST'):
-        appointment_date = request.form.get('appointment_date')
+    messages = None  # Biến để lưu thông báo
 
-        if (appointment_date):
-            pass
-        else:
-            appointment_date = '2024-12-12'
-        date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
-        formatted_date = date_obj.strftime('%d-%m-%Y')
-        count_schedule = dao.get_list_patient2(appointment_date)
-        messages = jsonify({'status': 'error', 'message': 'There was an error processing your request.'})
-        if(len(count_schedule) >=40):
-            print(len(count_schedule))
-            return render_template('index.html',messages=messages)
-        print(len(count_schedule))
-        name = request.form.get('name')
-        sex = request.form.get('sex')
-        birth = request.form.get('birth')
-        address = request.form.get('address')
-        time = request.form.get('time')
-        note = request.form.get('note')
-        date = request.form.get('date')
-        a = dao.create_appointment(name = name, sex=sex, birth=birth, address=address, time = time, note = note,date_examination=date)
-        messages = jsonify({'status': 'success', 'message': 'Thanh cong'})
+    if request.method == 'POST':
+        try:
+            # Lấy dữ liệu từ form
+            appointment_date = request.form.get('appointment_date')
 
-        # return render_template('index.html', messages=messages)
-        return  redirect(request.referrer or '/')
+            # Gán giá trị mặc định nếu không có
+            if not appointment_date:
+                appointment_date = '2024-12-12'
+            date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
+            formatted_date = date_obj.strftime('%d-%m-%Y')
+
+            # Kiểm tra số lượng lịch hẹn
+            count_schedule = dao.get_list_patient2(appointment_date)
+            if len(count_schedule) >= 40:
+                messages = {'status': 'error', 'message': 'Maximum number of appointments reached for this date.'}
+                return render_template('index.html', messages=messages)
+
+            # Lưu lịch hẹn
+            name = request.form.get('name')
+            sex = request.form.get('sex')
+            birth = request.form.get('birth')
+            address = request.form.get('address')
+            time = request.form.get('time')
+            note = request.form.get('note')
+            date = request.form.get('date')
+
+            # Tạo lịch hẹn
+            dao.create_appointment(
+                name=name, sex=sex, birth=birth, address=address,
+                time=time, note=note, date_examination=date
+            )
+            messages = {'status': 'success', 'message': 'Appointment created successfully!'}
+        except Exception as e:
+            # Xử lý lỗi
+            messages = {'status': 'error', 'message': f'Error: {str(e)}'}
+
+        return render_template('index.html', messages=messages)
     else:
+        # Xử lý cho phương thức GET
         time_frames = dao.get_list_time_frame()
         comments = dao.load_comments()
         for comment in comments:
             user_info = dao.get_info_user3(comment.user_id)
             comment.avatar = user_info.avatar
-        print(messages)
-        return render_template('index.html',time_frames=time_frames, comments=comments,messages=messages)
 
-   # return render_template('index.html', categories = cates, products = prods, page = math.ceil(total/page_size))
+        return render_template('index.html', time_frames=time_frames, comments=comments, messages=messages)
 
 @app.route("/login", methods=['get', 'post'])
 def login_procee():

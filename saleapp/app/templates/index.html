@@ -66,6 +66,14 @@
     </div>
 
 </section><!-- /Appointment Section -->
+
+<div class="alert-container">
+    {% if messages %}
+        <div class="alert {% if messages.status == 'success' %}alert-success{% else %}alert-danger{% endif %}">
+            {{ messages.message }}
+        </div>
+    {% endif %}
+</div>
 {% if current_user.is_authenticated %}
 <div class="mt-2">
     <textarea class="form-control" rows="5" id="comment" placeholder="Nhập nội dung bình luận..."></textarea>
@@ -98,17 +106,16 @@
 </ul>
 
 <script>
-    let noti = {{messages}}
-    console.log(noti)
-    if(noti !==""){
-        if(noti.status="success"){
-            let divSuccess = document.getElementById("successDIv")
-            divSuccess.style.display = "block"
-        }
 
-
-    }
-
+document.addEventListener('DOMContentLoaded', function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0'; // Làm mờ thông báo
+            setTimeout(() => alert.remove(), 500); // Xóa thông báo sau khi mờ dần
+        }, 2000); // Chờ 2 giây
+    });
+});
 
 
     function addComment() {
@@ -197,7 +204,11 @@
 //     });
 // });
 
-
 </script>
-
+<style>
+   .alert {
+    transition: opacity 0.5s ease; /* Tạo hiệu ứng mờ dần */
+    opacity: 1; /* Mặc định hiện đầy đủ */
+}
+</style>
 {%endblock%}
